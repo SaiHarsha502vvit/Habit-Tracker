@@ -1,7 +1,10 @@
 package com.habittracker.dto;
 
+import com.habittracker.model.Habit;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -26,4 +29,12 @@ public class HabitDto {
     private String description;
 
     private String createdAt; // LocalDate as string in YYYY-MM-DD format
+
+    // Pomodoro/Timer-related fields
+    @Builder.Default
+    private Habit.HabitType habitType = Habit.HabitType.STANDARD;
+
+    @Min(value = 1, message = "Timer duration must be at least 1 minute")
+    @Max(value = 480, message = "Timer duration must not exceed 8 hours (480 minutes)")
+    private Integer timerDurationMinutes; // Only used for TIMED habits
 }

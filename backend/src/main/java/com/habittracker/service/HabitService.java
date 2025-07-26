@@ -37,6 +37,8 @@ public class HabitService {
         Habit habit = Habit.builder()
                 .name(habitDto.getName())
                 .description(habitDto.getDescription())
+                .habitType(habitDto.getHabitType())
+                .timerDurationMinutes(habitDto.getTimerDurationMinutes())
                 .createdAt(LocalDate.now())
                 .build();
 
@@ -135,6 +137,8 @@ public class HabitService {
                 .id(habit.getId())
                 .name(habit.getName())
                 .description(habit.getDescription())
+                .habitType(habit.getHabitType())
+                .timerDurationMinutes(habit.getTimerDurationMinutes())
                 .createdAt(habit.getCreatedAt().toString())
                 .build();
     }
