@@ -13,16 +13,23 @@ function AddHabitForm() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    habitType: 'STANDARD',
+    timerDurationMinutes: 25, // Default Pomodoro duration
   })
 
   const isLoading = status === 'loading'
-  const isFormValid = formData.name.trim().length >= 3
+  const isFormValid =
+    formData.name.trim().length >= 3 &&
+    (formData.habitType === 'STANDARD' ||
+      (formData.habitType === 'TIMED' &&
+        formData.timerDurationMinutes >= 1 &&
+        formData.timerDurationMinutes <= 480))
 
   const handleChange = e => {
-    const { name, value } = e.target
+    const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'number' ? parseInt(value) || 0 : value,
     }))
   }
 
@@ -30,23 +37,50 @@ function AddHabitForm() {
     e.preventDefault()
 
     if (!isFormValid) {
-      toast.error('Habit name must be at least 3 characters long')
+      if (formData.name.trim().length < 3) {
+        toast.error('Habit name must be at least 3 characters long')
+      } else if (
+        formData.habitType === 'TIMED' &&
+        (formData.timerDurationMinutes < 1 ||
+          formData.timerDurationMinutes > 480)
+      ) {
+        toast.error('Timer duration must be between 1 and 480 minutes')
+      }
       return
     }
 
     try {
-      await dispatch(
-        addNewHabit({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-        })
-      ).unwrap()
+      const habitData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        habitType: formData.habitType,
+      }
+
+      // Only include timer duration for timed habits
+      if (formData.habitType === 'TIMED') {
+        habitData.timerDurationMinutes = formData.timerDurationMinutes
+      }
+
+      await dispatch(addNewHabit(habitData)).unwrap()
 
       // Clear form on success
-      setFormData({ name: '', description: '' })
+      setFormData({
+        name: '',
+        description: '',
+        habitType: 'STANDARD',
+        timerDurationMinutes: 25,
+      })
 
       // Show success message
-      toast.success(`Habit '${formData.name}' created! ✅`)
+      const habitTypeText =
+        formData.habitType === 'TIMED'
+          ? `timed habit (${formData.timerDurationMinutes}min)`
+          : 'habit'
+      toast.success(
+        `${habitTypeText.charAt(0).toUpperCase() + habitTypeText.slice(1)} '${
+          formData.name
+        }' created! ✅`
+      )
 
       // Return focus to name input for rapid addition
       document.getElementById('habit-name-input')?.focus()
@@ -96,6 +130,128 @@ function AddHabitForm() {
           />
         </div>
 
+        {/* Habit Type Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Habit Type *
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label
+              className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-colors ${
+                formData.habitType === 'STANDARD'
+                  ? 'border-emerald-500 bg-emerald-900 bg-opacity-20'
+                  : 'border-gray-600 bg-gray-800 hover:bg-gray-750'
+              }`}
+            >
+              <input
+                type="radio"
+                name="habitType"
+                value="STANDARD"
+                checked={formData.habitType === 'STANDARD'}
+                onChange={handleChange}
+                className="sr-only"
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <div className="text-lg">✅</div>
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-100">
+                      Standard
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Simple check-off
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {formData.habitType === 'STANDARD' && (
+                <div className="absolute top-2 right-2">
+                  <svg
+                    className="h-4 w-4 text-emerald-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
+            </label>
+
+            <label
+              className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-colors ${
+                formData.habitType === 'TIMED'
+                  ? 'border-blue-500 bg-blue-900 bg-opacity-20'
+                  : 'border-gray-600 bg-gray-800 hover:bg-gray-750'
+              }`}
+            >
+              <input
+                type="radio"
+                name="habitType"
+                value="TIMED"
+                checked={formData.habitType === 'TIMED'}
+                onChange={handleChange}
+                className="sr-only"
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <div className="text-lg">⏱️</div>
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-100">
+                      Timed
+                    </div>
+                    <div className="text-xs text-gray-400">Focus session</div>
+                  </div>
+                </div>
+              </div>
+              {formData.habitType === 'TIMED' && (
+                <div className="absolute top-2 right-2">
+                  <svg
+                    className="h-4 w-4 text-blue-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
+            </label>
+          </div>
+        </div>
+
+        {/* Timer Duration - Only show for timed habits */}
+        {formData.habitType === 'TIMED' && (
+          <div>
+            <label
+              htmlFor="timer-duration-input"
+              className="block text-sm font-medium text-gray-300 mb-2"
+            >
+              Focus Duration (minutes) *
+            </label>
+            <input
+              id="timer-duration-input"
+              type="number"
+              name="timerDurationMinutes"
+              value={formData.timerDurationMinutes}
+              onChange={handleChange}
+              min="1"
+              max="480"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            />
+            <div className="mt-1 flex justify-between text-xs text-gray-400">
+              <span>Common: 25min (Pomodoro), 50min (Work block)</span>
+              <span>Max: 8 hours</span>
+            </div>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={!isFormValid || isLoading}
@@ -130,7 +286,7 @@ function AddHabitForm() {
               Creating...
             </span>
           ) : (
-            'Add Habit'
+            `Add ${formData.habitType === 'TIMED' ? 'Timed' : ''} Habit`
           )}
         </button>
       </form>

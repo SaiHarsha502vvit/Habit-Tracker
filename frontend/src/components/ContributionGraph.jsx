@@ -2,7 +2,7 @@ import { useEffect, useMemo, memo } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import {
   fetchLogsForYear,
-  makeSelectLogsForHabit,
+  selectLogsForHabit,
 } from '../features/habits/habitsSlice'
 import { Tooltip } from 'react-tooltip'
 
@@ -12,9 +12,18 @@ import { Tooltip } from 'react-tooltip'
 function ContributionGraph({ habitId, year }) {
   const dispatch = useAppDispatch()
 
-  // Create a memoized selector for this specific habit
-  const selectLogsForHabit = useMemo(makeSelectLogsForHabit, [])
+  // Get logs data for this habit
   const logsData = useAppSelector(state => selectLogsForHabit(state, habitId))
+
+  // Debug logging to track data changes
+  console.log('🔍 ContributionGraph Debug:', {
+    habitId,
+    year,
+    logsStatus: logsData.status,
+    completionsCount: logsData.completions?.length || 0,
+    completions: logsData.completions,
+    timestamp: new Date().toISOString(),
+  })
 
   // Fetch logs for the year if not already loaded
   useEffect(() => {

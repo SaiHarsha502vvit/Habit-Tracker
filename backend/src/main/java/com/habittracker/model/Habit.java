@@ -31,4 +31,21 @@ public class Habit {
 
     @Column(name = "created_at", nullable = false)
     private LocalDate createdAt;
+
+    // Pomodoro/Timer-related fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "habit_type", nullable = false)
+    @Builder.Default
+    private HabitType habitType = HabitType.STANDARD;
+
+    @Column(name = "timer_duration_minutes")
+    private Integer timerDurationMinutes; // Only used for TIMED habits
+
+    /**
+     * Enum defining the different types of habits
+     */
+    public enum HabitType {
+        STANDARD, // Traditional check-off habits
+        TIMED // Pomodoro/timer-based habits
+    }
 }

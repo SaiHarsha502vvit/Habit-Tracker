@@ -173,17 +173,39 @@ const habitsSlice = createSlice({
         }
       })
       .addCase(logHabit.fulfilled, (state, action) => {
-        const { habitId } = action.payload
+        const { habitId, date } = action.payload
+        console.log('🔄 Redux: logHabit.fulfilled', { habitId, date, action })
+        
         if (state.logs[habitId]) {
           state.logs[habitId].status = 'succeeded'
           state.logs[habitId].error = null
+          // Ensure the completion date is in the array (in case optimistic update was missed)
+          if (!state.logs[habitId].completions.includes(date)) {
+            state.logs[habitId].completions.push(date)
+            console.log('📊 Redux: Added new completion date', { 
+              habitId, 
+              date, 
+              totalCompletions: state.logs[habitId].completions.length,
+              completions: state.logs[habitId].completions 
+            })
+          } else {
+            console.log('📊 Redux: Date already in completions', { 
+              habitId, 
+              date, 
+              completions: state.logs[habitId].completions 
+            })
+          }
+        } else {
+          console.log('⚠️ Redux: No logs state found for habitId', habitId)
         }
       })
       .addCase(logHabit.rejected, (state, action) => {
-        const { habitId } = action.meta.arg
+        const { habitId, date } = action.meta.arg
         if (state.logs[habitId]) {
           state.logs[habitId].status = 'failed'
           state.logs[habitId].error = action.payload
+          // Remove the optimistic update on failure
+          state.logs[habitId].completions = state.logs[habitId].completions.filter(d => d !== date)
         }
       })
       
@@ -224,20 +246,27 @@ export const {
 } = habitsAdapter.getSelectors((state) => state.habits.habits)
 
 // Memoized selectors to prevent unnecessary re-renders
-export const selectHabitsStatus = createSelector(
-  [(state) => state.habits.habits.status],
-  (status) => status
-)
+export const selectHabitsStatus = (state) => state.habits.habits.status
 
-export const selectHabitsError = createSelector(
-  [(state) => state.habits.habits.error],
-  (error) => error
-)
+export const selectHabitsError = (state) => state.habits.habits.error
 
-// Factory function for creating memoized log selectors for specific habits
-export const makeSelectLogsForHabit = () => createSelector(
+// Direct selector for habit logs - no factory needed
+export const selectLogsForHabit = createSelector(
   [(state, habitId) => state.habits.logs[habitId]],
-  (logs) => logs || { completions: [], status: 'idle', error: null }
+  (logData) => {
+    if (!logData) {
+      return {
+        completions: [],
+        status: 'idle',
+        error: null
+      }
+    }
+    return {
+      completions: logData.completions || [],
+      status: logData.status || 'idle',
+      error: logData.error || null
+    }
+  }
 )
 
 export default habitsSlice.reducer
