@@ -46,6 +46,11 @@ public class Habit {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
+    // Phase 2 Enhancement: Folder association for hierarchical organization
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id", nullable = true)
+    private HabitFolder folder;
+
     // Phase 1 Enhancement: Tags support
     @ElementCollection
     @CollectionTable(name = "habit_tags", joinColumns = @JoinColumn(name = "habit_id"))

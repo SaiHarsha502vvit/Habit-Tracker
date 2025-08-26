@@ -338,6 +338,137 @@ export const getPomodoroSessionSetStatistics = async (habitId) => {
 }
 
 /**
+ * Habit Folder API functions (Phase 2 - Search & Filter System)
+ */
+
+/**
+ * Create a new folder
+ */
+export const createHabitFolder = async (folderData) => {
+  const response = await api.post('/api/folders', folderData)
+  return response.data
+}
+
+/**
+ * Get folder tree structure
+ */
+export const getFolderTree = async () => {
+  const response = await api.get('/api/folders/tree')
+  return response.data
+}
+
+/**
+ * Get all folders (flat list)
+ */
+export const getAllFolders = async () => {
+  const response = await api.get('/api/folders')
+  return response.data
+}
+
+/**
+ * Get folder by ID
+ */
+export const getFolderById = async (folderId) => {
+  const response = await api.get(`/api/folders/${folderId}`)
+  return response.data
+}
+
+/**
+ * Update folder
+ */
+export const updateHabitFolder = async (folderId, updates) => {
+  const response = await api.put(`/api/folders/${folderId}`, updates)
+  return response.data
+}
+
+/**
+ * Delete folder
+ */
+export const deleteHabitFolder = async (folderId) => {
+  const response = await api.delete(`/api/folders/${folderId}`)
+  return response.data
+}
+
+/**
+ * Search folders by name
+ */
+export const searchFolders = async (searchTerm) => {
+  const response = await api.get(`/api/folders/search?q=${encodeURIComponent(searchTerm)}`)
+  return response.data
+}
+
+/**
+ * Advanced Habit Search API functions
+ */
+
+/**
+ * Quick search habits by text
+ */
+export const quickSearchHabits = async (searchTerm) => {
+  const params = new URLSearchParams()
+  if (searchTerm) params.append('q', searchTerm)
+  
+  const response = await api.get(`/api/habits/search/quick?${params.toString()}`)
+  return response.data
+}
+
+/**
+ * Advanced search habits with multiple filters
+ */
+export const advancedSearchHabits = async (criteria) => {
+  const params = new URLSearchParams()
+  
+  if (criteria.searchTerm) params.append('q', criteria.searchTerm)
+  if (criteria.categoryId) params.append('categoryId', criteria.categoryId)
+  if (criteria.priority) params.append('priority', criteria.priority)
+  if (criteria.habitType) params.append('habitType', criteria.habitType)
+  if (criteria.folderId) params.append('folderId', criteria.folderId)
+  if (criteria.tags && criteria.tags.length > 0) {
+    criteria.tags.forEach(tag => params.append('tags', tag))
+  }
+  if (criteria.tagMatchAll !== undefined) params.append('tagMatchAll', criteria.tagMatchAll)
+  if (criteria.createdAfter) params.append('createdAfter', criteria.createdAfter)
+  if (criteria.createdBefore) params.append('createdBefore', criteria.createdBefore)
+  if (criteria.sortBy) params.append('sortBy', criteria.sortBy)
+  if (criteria.sortDirection) params.append('sortDirection', criteria.sortDirection)
+  
+  const response = await api.get(`/api/habits/search/advanced?${params.toString()}`)
+  return response.data
+}
+
+/**
+ * Get habits by folder
+ */
+export const getHabitsByFolder = async (folderId) => {
+  const response = await api.get(`/api/habits/search/folder/${folderId}`)
+  return response.data
+}
+
+/**
+ * Get uncategorized habits
+ */
+export const getUncategorizedHabits = async () => {
+  const response = await api.get('/api/habits/search/uncategorized')
+  return response.data
+}
+
+/**
+ * Get user's unique tags
+ */
+export const getUserTags = async () => {
+  const response = await api.get('/api/habits/search/tags')
+  return response.data
+}
+
+/**
+ * Get search suggestions
+ */
+export const getSearchSuggestions = async (partialInput) => {
+  const response = await api.get(`/api/habits/search/suggestions?q=${encodeURIComponent(partialInput)}`)
+  return response.data
+}
+
+/**
  * Data Export/Import API functions
  */
 

@@ -383,7 +383,7 @@ public class HabitService {
     /**
      * Map Habit entity to DTO with enhanced features.
      */
-    private HabitDto mapToDto(Habit habit) {
+    public HabitDto mapToDto(Habit habit) {
         HabitDto.HabitDtoBuilder dtoBuilder = HabitDto.builder()
                 .id(habit.getId())
                 .name(habit.getName())
