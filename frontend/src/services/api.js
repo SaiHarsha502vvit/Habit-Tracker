@@ -262,6 +262,82 @@ export const getWorkSessionCount = async (habitId, date) => {
 }
 
 /**
+ * Pomodoro Session Set API functions (Enhanced Pomodoro Technique)
+ */
+
+/**
+ * Create a new Pomodoro session set
+ */
+export const createPomodoroSessionSet = async (sessionSetData) => {
+  const response = await api.post('/api/pomodoro/session-sets', sessionSetData)
+  return response.data
+}
+
+/**
+ * Get active session set for a habit
+ */
+export const getActivePomodoroSessionSet = async (habitId) => {
+  const response = await api.get(`/api/pomodoro/session-sets/habit/${habitId}/active`)
+  return response.data
+}
+
+/**
+ * Get session set by ID
+ */
+export const getPomodoroSessionSet = async (sessionSetId) => {
+  const response = await api.get(`/api/pomodoro/session-sets/${sessionSetId}`)
+  return response.data
+}
+
+/**
+ * Update session set
+ */
+export const updatePomodoroSessionSet = async (sessionSetId, updates) => {
+  const response = await api.put(`/api/pomodoro/session-sets/${sessionSetId}`, updates)
+  return response.data
+}
+
+/**
+ * Advance session set to next phase
+ */
+export const advancePomodoroSessionSet = async (sessionSetId) => {
+  const response = await api.post(`/api/pomodoro/session-sets/${sessionSetId}/advance`)
+  return response.data
+}
+
+/**
+ * Cancel session set
+ */
+export const cancelPomodoroSessionSet = async (sessionSetId) => {
+  const response = await api.post(`/api/pomodoro/session-sets/${sessionSetId}/cancel`)
+  return response.data
+}
+
+/**
+ * Get all session sets for a habit
+ */
+export const getPomodoroSessionSetsForHabit = async (habitId) => {
+  const response = await api.get(`/api/pomodoro/session-sets/habit/${habitId}`)
+  return response.data
+}
+
+/**
+ * Get completed session sets for a habit
+ */
+export const getCompletedPomodoroSessionSets = async (habitId) => {
+  const response = await api.get(`/api/pomodoro/session-sets/habit/${habitId}/completed`)
+  return response.data
+}
+
+/**
+ * Get session set statistics
+ */
+export const getPomodoroSessionSetStatistics = async (habitId) => {
+  const response = await api.get(`/api/pomodoro/session-sets/habit/${habitId}/statistics`)
+  return response.data
+}
+
+/**
  * Data Export/Import API functions
  */
 
