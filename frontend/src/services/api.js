@@ -121,41 +121,36 @@ export const createCategory = async (categoryData) => {
  * Get timer presets
  */
 export const getTimerPresets = async () => {
-  try {
-    // For now, return static presets - can be made dynamic later
-    return {
-      POMODORO_CLASSIC: {
-        workMinutes: 25,
-        shortBreakMinutes: 5,
-        longBreakMinutes: 15,
-        description: "🍅 Pomodoro Classic (25min)"
-      },
-      POMODORO_EXTENDED: {
-        workMinutes: 50,
-        shortBreakMinutes: 10,
-        longBreakMinutes: 30,
-        description: "🍅 Pomodoro Extended (50min)"
-      },
-      DEEP_WORK: {
-        workMinutes: 90,
-        shortBreakMinutes: 20,
-        longBreakMinutes: 30,
-        description: "🧠 Deep Work (90min)"
-      },
-      TIMEBOXING: {
-        workMinutes: 60,
-        shortBreakMinutes: 10,
-        longBreakMinutes: 20,
-        description: "⏰ Timeboxing (60min)"
-      },
-      CUSTOM: {
-        workMinutes: 25,
-        description: "✏️ Custom Duration"
-      }
+  // For now, return static presets - can be made dynamic later
+  return {
+    POMODORO_CLASSIC: {
+      workMinutes: 25,
+      shortBreakMinutes: 5,
+      longBreakMinutes: 15,
+      description: "🍅 Pomodoro Classic (25min)"
+    },
+    POMODORO_EXTENDED: {
+      workMinutes: 50,
+      shortBreakMinutes: 10,
+      longBreakMinutes: 30,
+      description: "🍅 Pomodoro Extended (50min)"
+    },
+    DEEP_WORK: {
+      workMinutes: 90,
+      shortBreakMinutes: 20,
+      longBreakMinutes: 30,
+      description: "🧠 Deep Work (90min)"
+    },
+    TIMEBOXING: {
+      workMinutes: 60,
+      shortBreakMinutes: 10,
+      longBreakMinutes: 20,
+      description: "⏰ Timeboxing (60min)"
+    },
+    CUSTOM: {
+      workMinutes: 25,
+      description: "✏️ Custom Duration"
     }
-  } catch (error) {
-    console.log('Timer presets not available:', error.message)
-    return {}
   }
 }
 
@@ -223,6 +218,75 @@ export const logCompletion = async (habitId, date) => {
  */
 export const getLogsForYear = async (habitId, year) => {
   const response = await api.get(`/api/habits/${habitId}/logs?year=${year}`)
+  return response.data
+}
+
+/**
+ * Pomodoro Session API functions
+ */
+
+/**
+ * Log a completed Pomodoro session
+ */
+export const logPomodoroSession = async (habitId, sessionType, durationMinutes) => {
+  const response = await api.post('/api/pomodoro/sessions', {
+    habitId,
+    sessionType,
+    durationMinutes
+  })
+  return response.data
+}
+
+/**
+ * Get all sessions for a habit
+ */
+export const getPomodoroSessions = async (habitId) => {
+  const response = await api.get(`/api/pomodoro/sessions/habit/${habitId}`)
+  return response.data
+}
+
+/**
+ * Get sessions for a habit on a specific date
+ */
+export const getPomodoroSessionsForDate = async (habitId, date) => {
+  const response = await api.get(`/api/pomodoro/sessions/habit/${habitId}/date/${date}`)
+  return response.data
+}
+
+/**
+ * Get work session count for a habit on a specific date
+ */
+export const getWorkSessionCount = async (habitId, date) => {
+  const response = await api.get(`/api/pomodoro/sessions/habit/${habitId}/count/date/${date}`)
+  return response.data
+}
+
+/**
+ * Data Export/Import API functions
+ */
+
+/**
+ * Export all user data
+ */
+export const exportUserData = async () => {
+  const response = await api.get('/api/export/data', {
+    responseType: 'blob'
+  })
+  return response.data
+}
+
+/**
+ * Import user data
+ */
+export const importUserData = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const response = await api.post('/api/import/data', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
   return response.data
 }
 
