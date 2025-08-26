@@ -73,7 +73,9 @@ function HabitList() {
   return (
     <div className="space-y-6">
       {habitIds.map(habitId => (
-        <HabitItem key={habitId} habitId={habitId} />
+        <div key={habitId} id={`habit-${habitId}`} data-habit-id={habitId}>
+          <HabitItem habitId={habitId} />
+        </div>
       ))}
     </div>
   )

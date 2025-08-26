@@ -8,6 +8,9 @@ import { getCurrentUser } from './services/api'
 import AddHabitForm from './components/AddHabitFormClean'
 import HabitList from './components/HabitList'
 import HomePage from './components/HomePage'
+// import HabitFileSystem from './components/HabitFileSystem'
+import HabitFileSystemSimple from './components/HabitFileSystemSimple'
+import RevolutionaryFileSystem from './components/RevolutionaryFileSystem'
 import EnhancedSearchInterface from './components/EnhancedSearchInterface'
 import EnhancedFolderNavigation from './components/EnhancedFolderNavigation'
 // import AnalyticsDashboard from './components/AnalyticsDashboard'
@@ -151,18 +154,86 @@ function AppContent() {
           <AnalyticsDashboard />
         </section> */}
 
-        {/* Search Interface and Folder Navigation */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2">
-            <EnhancedSearchInterface className="mb-6" />
-          </div>
-          <div className="lg:col-span-1">
-            <EnhancedFolderNavigation />
+        {/* Revolutionary File System Interface */}
+        <section className="mb-8 h-96">
+          <RevolutionaryFileSystem
+            onEditHabit={habit => {
+              // Scroll to the specific habit in the list
+              setTimeout(() => {
+                const habitElement =
+                  document.getElementById(`habit-${habit.id}`) ||
+                  document.querySelector(`[data-habit-id="${habit.id}"]`)
+                if (habitElement) {
+                  habitElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  })
+                  // Highlight the selected habit
+                  habitElement.classList.add(
+                    'ring-2',
+                    'ring-emerald-500',
+                    'ring-opacity-50',
+                    'bg-emerald-50',
+                    'dark:bg-emerald-900/20'
+                  )
+                  setTimeout(() => {
+                    habitElement.classList.remove(
+                      'ring-2',
+                      'ring-emerald-500',
+                      'ring-opacity-50',
+                      'bg-emerald-50',
+                      'dark:bg-emerald-900/20'
+                    )
+                  }, 3000)
+                }
+              }, 100)
+              console.log('Selected habit:', habit.name)
+            }}
+            onCreateHabit={() => {
+              // Scroll to habit creation form
+              setTimeout(() => {
+                const formElement = document.getElementById(
+                  'habit-creation-form'
+                )
+                if (formElement) {
+                  formElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  })
+                  // Add a subtle highlight effect
+                  formElement.classList.add(
+                    'ring-2',
+                    'ring-blue-500',
+                    'ring-opacity-30'
+                  )
+                  setTimeout(() => {
+                    formElement.classList.remove(
+                      'ring-2',
+                      'ring-blue-500',
+                      'ring-opacity-30'
+                    )
+                  }, 2000)
+                }
+              }, 100)
+              console.log('Scrolling to habit creation form')
+            }}
+          />
+        </section>
+
+        {/* Legacy interfaces - Hidden but kept for reference */}
+        <div className="hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="lg:col-span-2">
+              <EnhancedSearchInterface className="mb-6" />
+            </div>
+            <div className="lg:col-span-1">
+              <EnhancedFolderNavigation />
+            </div>
           </div>
         </div>
 
         {/* Add Habit Form */}
-        <section className="mb-8">
+        <section id="habit-creation-form" className="mb-8">
           <AddHabitForm user={user} />
         </section>
 
