@@ -31,12 +31,12 @@ public class PerformanceConfig {
     @Bean
     public CacheManager cacheManager() {
         ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-        cacheManager.setCacheNames(
+        cacheManager.setCacheNames(java.util.Arrays.asList(
                 "habits",
                 "habitLogs",
                 "pomodoroSessions",
                 "categories",
-                "userStats");
+                "userStats"));
         return cacheManager;
     }
 
