@@ -15,15 +15,13 @@ function ContributionGraph({ habitId, year }) {
   // Get logs data for this habit
   const logsData = useAppSelector(state => selectLogsForHabit(state, habitId))
 
-  // Debug logging to track data changes
-  console.log('🔍 ContributionGraph Debug:', {
-    habitId,
-    year,
-    logsStatus: logsData.status,
-    completionsCount: logsData.completions?.length || 0,
-    completions: logsData.completions,
-    timestamp: new Date().toISOString(),
-  })
+  // Debug logging only in development (removed in production)
+  // console.log('🔍 ContributionGraph Debug:', {
+  //   habitId,
+  //   year,
+  //   logsStatus: logsData.status,
+  //   completionsCount: logsData.completions?.length || 0,
+  // })
 
   // Fetch logs for the year if not already loaded
   useEffect(() => {
