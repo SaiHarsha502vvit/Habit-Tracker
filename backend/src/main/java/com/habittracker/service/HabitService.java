@@ -13,6 +13,9 @@ import com.habittracker.repository.HabitRepository;
 import com.habittracker.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +41,10 @@ public class HabitService {
     private final UserService userService;
 
     /**
-     * Create a new habit with enhanced Phase 1 features.
+     * Create a new habit with enhanced Phase 1 features and cache management.
      */
     @Transactional
+    @CacheEvict(value = "habits", allEntries = true)
     public HabitDto createHabit(HabitDto habitDto) {
         log.info("Creating new habit: {}", habitDto.getName());
 
@@ -103,10 +107,11 @@ public class HabitService {
     }
 
     /**
-     * Get all habits with user-based filtering.
+     * Get all habits with user-based filtering and caching.
      */
+    @Cacheable(value = "habits", key = "#userId ?: 'anonymous'")
     public List<HabitDto> getAllHabits() {
-        log.info("Fetching all habits");
+        log.info("Fetching all habits from database (cache miss)");
 
         User currentUser = userService.getCurrentUser();
         Long userId = currentUser != null ? currentUser.getId() : null;
@@ -161,9 +166,11 @@ public class HabitService {
     }
 
     /**
-     * Update habit.
+     * Update habit with cache invalidation.
      */
     @Transactional
+    @CachePut(value = "habits", key = "#habitId")
+    @CacheEvict(value = "habitLogs", key = "#habitId")
     public HabitDto updateHabit(Long habitId, HabitDto habitDto) {
         log.info("Updating habit with ID: {}", habitId);
 
@@ -286,8 +293,9 @@ public class HabitService {
     }
 
     /**
-     * Get completion logs for a habit within a specific year.
+     * Get completion logs for a habit within a specific year with caching.
      */
+    @Cacheable(value = "habitLogs", key = "#habitId + '_' + #year")
     public List<LocalDate> getCompletionLogsForYear(Long habitId, int year) {
         log.info("Fetching completion logs for habit {} in year {}", habitId, year);
 
@@ -375,7 +383,7 @@ public class HabitService {
     /**
      * Map Habit entity to DTO with enhanced features.
      */
-    private HabitDto mapToDto(Habit habit) {
+    public HabitDto mapToDto(Habit habit) {
         HabitDto.HabitDtoBuilder dtoBuilder = HabitDto.builder()
                 .id(habit.getId())
                 .name(habit.getName())
