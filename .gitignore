@@ -1,0 +1,20 @@
+# Backend build artifacts
+backend/target/
+backend/.mvn/
+backend/*.jar
+
+# Frontend build artifacts  
+frontend/node_modules/
+frontend/dist/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
