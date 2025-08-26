@@ -10,8 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import java.util.Set;
+
 /**
  * Data Transfer Object for Habit entity.
+ * Enhanced with Phase 1 features.
  */
 @Data
 @NoArgsConstructor
@@ -29,12 +32,37 @@ public class HabitDto {
     private String description;
 
     private String createdAt; // LocalDate as string in YYYY-MM-DD format
+    private String updatedAt; // LocalDateTime as string
 
-    // Pomodoro/Timer-related fields
+    // Phase 1 Enhancement: Category support
+    private Long categoryId;
+    private CategoryDto category; // Full category details for display
+
+    // Phase 1 Enhancement: Tags support
+    private Set<String> tags;
+
+    // Phase 1 Enhancement: Priority support
+    @Builder.Default
+    private Habit.Priority priority = Habit.Priority.MEDIUM;
+
+    // Existing Pomodoro/Timer-related fields
     @Builder.Default
     private Habit.HabitType habitType = Habit.HabitType.STANDARD;
 
     @Min(value = 1, message = "Timer duration must be at least 1 minute")
     @Max(value = 480, message = "Timer duration must not exceed 8 hours (480 minutes)")
     private Integer timerDurationMinutes; // Only used for TIMED habits
+
+    // Phase 1 Enhancement: Timer presets
+    private Habit.TimerPreset timerPreset;
+
+    // Phase 1 Enhancement: Additional metadata
+    @Builder.Default
+    private boolean isArchived = false;
+
+    @Builder.Default
+    private int streakCount = 0;
+
+    // User information (for display purposes, not for creation)
+    private String username; // Read-only field for display
 }
