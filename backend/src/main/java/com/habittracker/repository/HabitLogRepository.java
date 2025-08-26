@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
 
     /**
-     * Find a habit log by habit ID and completion date.
+     * Find a habit log by habit ID and completion date (returns Optional).
      */
     Optional<HabitLog> findByHabitIdAndCompletionDate(Long habitId, LocalDate completionDate);
 
@@ -29,6 +29,17 @@ public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
             @Param("habitId") Long habitId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    /**
+     * Find all habit logs for a specific habit ordered by completion date
+     * descending.
+     */
+    List<HabitLog> findByHabitIdOrderByCompletionDateDesc(Long habitId);
+
+    /**
+     * Find all habit logs for a specific habit.
+     */
+    List<HabitLog> findByHabitId(Long habitId);
 
     /**
      * Delete all logs for a specific habit.

@@ -7,10 +7,12 @@ import toast from 'react-hot-toast'
 /**
  * Enhanced form component for adding new habits with Phase 1 features
  */
-function AddHabitForm() {
+function AddHabitForm({ user }) {
   const dispatch = useAppDispatch()
   const status = useAppSelector(selectHabitsStatus)
 
+  // Use user prop instead of checking localStorage
+  const isAuthenticated = !!user
   const [categories, setCategories] = useState([])
   const [timerPresets, setTimerPresets] = useState({})
   const [formData, setFormData] = useState({
@@ -50,6 +52,67 @@ function AddHabitForm() {
     }
     loadData()
   }, [])
+
+  // Show login prompt if user is not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+        <div className="mb-4">
+          <svg
+            className="w-16 h-16 text-gray-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Create Your First Habit
+          </h3>
+          <p className="text-gray-400 mb-6">
+            Sign in to start building lasting habits and track your progress
+          </p>
+          <div className="text-sm text-gray-500 mb-4">
+            ✨ Create unlimited habits
+            <br />
+            📊 Track your streaks and progress
+            <br />
+            🎯 Set goals and priorities
+            <br />
+            📱 Get reminders and analytics
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            // Trigger the auth modal from parent component
+            const authButton =
+              document.querySelector('[data-auth-trigger]') ||
+              Array.from(document.querySelectorAll('button')).find(
+                b =>
+                  b.textContent.includes('Sign In') ||
+                  b.textContent.includes('Sign Up')
+              )
+            if (authButton) {
+              authButton.click()
+            } else {
+              // Fallback: show a message
+              alert(
+                'Please click the "Sign In / Sign Up" button in the header to get started!'
+              )
+            }
+          }}
+          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+        >
+          Sign In to Create Habits
+        </button>
+      </div>
+    )
+  }
 
   const handleChange = e => {
     const { name, value, type } = e.target

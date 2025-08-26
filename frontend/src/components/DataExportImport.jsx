@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { exportUserData, importUserData } from '../services/api'
 import toast from 'react-hot-toast'
 import {
@@ -15,9 +15,26 @@ export default function DataExportImport() {
   const [importResult, setImportResult] = useState(null)
   const [exportStats, setExportStats] = useState(null)
 
+  // Check if user is authenticated
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
   // Performance monitoring and network status
   const performanceData = usePerformanceMonitor('DataExportImport')
   const { isOnline, connectionType } = useNetworkStatus()
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    setIsAuthenticated(!!token)
+
+    // Listen for storage changes (logout in other tabs)
+    const handleStorageChange = () => {
+      const currentToken = localStorage.getItem('token')
+      setIsAuthenticated(!!currentToken)
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
 
   const handleExportData = useCallback(async () => {
     if (!isOnline) {
@@ -185,6 +202,9 @@ export default function DataExportImport() {
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
+
+  // Don't render if user is not authenticated
+  if (!isAuthenticated) return null
 
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">

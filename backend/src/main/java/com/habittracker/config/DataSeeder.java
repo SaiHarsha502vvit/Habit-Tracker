@@ -23,8 +23,6 @@ import java.util.Set;
  * Enhanced with Phase 1 features.
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class DataSeeder implements CommandLineRunner {
 
         private final HabitRepository habitRepository;
@@ -32,13 +30,23 @@ public class DataSeeder implements CommandLineRunner {
         private final CategoryRepository categoryRepository;
         private final CategoryService categoryService;
 
+        public DataSeeder(HabitRepository habitRepository,
+                        HabitLogRepository habitLogRepository,
+                        CategoryRepository categoryRepository,
+                        CategoryService categoryService) {
+                this.habitRepository = habitRepository;
+                this.habitLogRepository = habitLogRepository;
+                this.categoryRepository = categoryRepository;
+                this.categoryService = categoryService;
+        }
+
         @Override
         public void run(String... args) throws Exception {
                 // Initialize default categories first
                 categoryService.initializeDefaultCategories();
 
                 if (habitRepository.count() == 0) {
-                        log.info("Seeding database with sample data...");
+                        System.out.println("Seeding database with sample data...");
 
                         // Get some categories for sample habits
                         List<Category> categories = categoryRepository.findByIsDefaultTrue();
@@ -102,9 +110,10 @@ public class DataSeeder implements CommandLineRunner {
                         habitLogRepository.saveAll(exerciseLogs);
                         habitLogRepository.saveAll(pomodoroLogs);
 
-                        log.info("Database seeded successfully with {} categories, {} habits and {} total logs",
+                        System.out.println(String.format(
+                                        "Database seeded successfully with %d categories, %d habits and %d total logs",
                                         categories.size(), 3,
-                                        readingLogs.size() + exerciseLogs.size() + pomodoroLogs.size());
+                                        readingLogs.size() + exerciseLogs.size() + pomodoroLogs.size()));
                 }
         }
 

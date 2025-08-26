@@ -22,8 +22,8 @@ import com.habittracker.security.JwtAuthenticationEntryPoint;
 import com.habittracker.security.JwtAuthenticationFilter;
 
 /**
- * Security configuration with backward compatibility.
- * Authentication is optional - existing endpoints work without auth.
+ * Security configuration with proper user isolation.
+ * ALL habit-related operations now require authentication to prevent data leakage.
  */
 @Configuration
 @EnableWebSecurity
@@ -58,18 +58,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
 
-                        // Backward compatibility: READ-ONLY endpoints work without auth
-                        .requestMatchers(HttpMethod.GET, "/api/habits").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/habits/*/logs").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
-
-                        // WRITE operations require authentication for security
-                        .requestMatchers(HttpMethod.POST, "/api/habits").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/habits/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/habits/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/habits/*/logs").authenticated()
-
-                        // Analytics and profile always require authentication
+                        // Security Fix: ALL habit-related endpoints require authentication to prevent data leakage
+                        .requestMatchers("/api/habits/**").authenticated()
+                        .requestMatchers("/api/categories/**").authenticated()
+                        .requestMatchers("/api/search/**").authenticated()
                         .requestMatchers("/api/analytics/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()
 

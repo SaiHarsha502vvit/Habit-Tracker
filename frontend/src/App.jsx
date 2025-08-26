@@ -5,8 +5,11 @@ import { store } from './app/store'
 import { useAppDispatch } from './app/hooks'
 import { fetchHabits } from './features/habits/habitsSlice'
 import { getCurrentUser } from './services/api'
-import AddHabitForm from './components/AddHabitForm'
+import AddHabitForm from './components/AddHabitFormClean'
 import HabitList from './components/HabitList'
+import HomePage from './components/HomePage'
+import EnhancedSearchInterface from './components/EnhancedSearchInterface'
+import EnhancedFolderNavigation from './components/EnhancedFolderNavigation'
 // import AnalyticsDashboard from './components/AnalyticsDashboard'
 import AuthModal from './components/AuthModal'
 
@@ -61,6 +64,47 @@ function AppContent() {
     )
   }
 
+  // Show HomePage if user is not authenticated
+  if (!user) {
+    return (
+      <>
+        <HomePage onShowAuth={() => setShowAuthModal(true)} />
+
+        {/* Auth Modal */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+        />
+
+        {/* Toast Notifications */}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#374151',
+              color: '#F3F4F6',
+              border: '1px solid #4B5563',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#F3F4F6',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#F3F4F6',
+              },
+            },
+          }}
+        />
+      </>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <main className="container mx-auto px-4 py-8 max-w-6xl">
@@ -92,6 +136,7 @@ function AppContent() {
               ) : (
                 <button
                   onClick={() => setShowAuthModal(true)}
+                  data-auth-trigger
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm transition-colors"
                 >
                   Sign In / Sign Up
@@ -106,9 +151,19 @@ function AppContent() {
           <AnalyticsDashboard />
         </section> */}
 
+        {/* Search Interface and Folder Navigation */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="lg:col-span-2">
+            <EnhancedSearchInterface className="mb-6" />
+          </div>
+          <div className="lg:col-span-1">
+            <EnhancedFolderNavigation />
+          </div>
+        </div>
+
         {/* Add Habit Form */}
         <section className="mb-8">
-          <AddHabitForm />
+          <AddHabitForm user={user} />
         </section>
 
         {/* Habits List */}
