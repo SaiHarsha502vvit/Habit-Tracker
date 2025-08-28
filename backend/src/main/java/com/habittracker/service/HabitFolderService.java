@@ -1,18 +1,23 @@
 package com.habittracker.service;
 
 import com.habittracker.dto.HabitFolderDTO;
+import com.habittracker.dto.CopyResult;
 import com.habittracker.model.HabitFolder;
+import com.habittracker.model.Habit;
 import com.habittracker.model.User;
 import com.habittracker.repository.HabitFolderRepository;
 import com.habittracker.repository.HabitRepository;
 import com.habittracker.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -35,11 +40,11 @@ public class HabitFolderService {
         log.info("Creating new folder: {}", folderDTO.getName());
 
         User currentUser = userService.getCurrentUser();
-        
+
         // Check for duplicate folder names in the same parent
         Optional<HabitFolder> existing = folderRepository.findByUserAndNameAndParent(
-            currentUser.getId(), folderDTO.getName(), folderDTO.getParentId());
-        
+                currentUser.getId(), folderDTO.getName(), folderDTO.getParentId());
+
         if (existing.isPresent()) {
             throw new IllegalArgumentException("Folder with this name already exists in the same location");
         }
@@ -50,20 +55,22 @@ public class HabitFolderService {
                 .icon(folderDTO.getIcon() != null ? folderDTO.getIcon() : "📁")
                 .color(folderDTO.getColor() != null ? folderDTO.getColor() : "#6B7280")
                 .sortOrder(folderDTO.getSortOrder() != null ? folderDTO.getSortOrder() : 0)
-                .folderType(folderDTO.getFolderType() != null ? folderDTO.getFolderType() : HabitFolder.FolderType.CUSTOM)
+                .folderType(
+                        folderDTO.getFolderType() != null ? folderDTO.getFolderType() : HabitFolder.FolderType.CUSTOM)
                 .isSystemFolder(false)
                 .user(currentUser);
 
         // Set parent if provided
         if (folderDTO.getParentId() != null) {
             HabitFolder parent = folderRepository.findById(folderDTO.getParentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parent folder not found: " + folderDTO.getParentId()));
-            
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Parent folder not found: " + folderDTO.getParentId()));
+
             // Verify parent belongs to the same user
             if (!parent.getUser().getId().equals(currentUser.getId())) {
                 throw new IllegalArgumentException("Cannot create folder under another user's folder");
             }
-            
+
             builder.parent(parent);
         }
 
@@ -140,9 +147,9 @@ public class HabitFolderService {
         if (updates.getName() != null && !updates.getName().equals(folder.getName())) {
             // Check for duplicates
             Optional<HabitFolder> existing = folderRepository.findByUserAndNameAndParent(
-                currentUser.getId(), updates.getName(), 
-                folder.getParent() != null ? folder.getParent().getId() : null);
-            
+                    currentUser.getId(), updates.getName(),
+                    folder.getParent() != null ? folder.getParent().getId() : null);
+
             if (existing.isPresent() && !existing.get().getId().equals(folderId)) {
                 throw new IllegalArgumentException("Folder with this name already exists in the same location");
             }
@@ -221,28 +228,28 @@ public class HabitFolderService {
 
         // Check if system folders already exist
         List<HabitFolder> existingSystemFolders = folderRepository.findByUserAndFolderType(
-            user.getId(), HabitFolder.FolderType.SMART);
-        
+                user.getId(), HabitFolder.FolderType.SMART);
+
         if (!existingSystemFolders.isEmpty()) {
             log.debug("System folders already exist for user: {}", user.getId());
             return;
         }
 
         // Create default smart folders
-        createSystemFolder(user, "📅 Today's Focus", "Habits due today", 
-                          HabitFolder.FolderType.COMPLETION, "{\"type\":\"today\"}", 1);
-        
-        createSystemFolder(user, "🔥 High Priority", "High priority habits", 
-                          HabitFolder.FolderType.PRIORITY, "{\"priority\":\"HIGH\"}", 2);
-        
-        createSystemFolder(user, "📚 Learning & Development", "Educational habits", 
-                          HabitFolder.FolderType.CATEGORY, "{\"categoryName\":\"Learning\"}", 3);
-        
-        createSystemFolder(user, "💪 Health & Fitness", "Health and fitness habits", 
-                          HabitFolder.FolderType.CATEGORY, "{\"categoryName\":\"Health\"}", 4);
-        
-        createSystemFolder(user, "📁 Uncategorized", "Habits without folders", 
-                          HabitFolder.FolderType.CUSTOM, "{\"type\":\"uncategorized\"}", 5);
+        createSystemFolder(user, "📅 Today's Focus", "Habits due today",
+                HabitFolder.FolderType.COMPLETION, "{\"type\":\"today\"}", 1);
+
+        createSystemFolder(user, "🔥 High Priority", "High priority habits",
+                HabitFolder.FolderType.PRIORITY, "{\"priority\":\"HIGH\"}", 2);
+
+        createSystemFolder(user, "📚 Learning & Development", "Educational habits",
+                HabitFolder.FolderType.CATEGORY, "{\"categoryName\":\"Learning\"}", 3);
+
+        createSystemFolder(user, "💪 Health & Fitness", "Health and fitness habits",
+                HabitFolder.FolderType.CATEGORY, "{\"categoryName\":\"Health\"}", 4);
+
+        createSystemFolder(user, "📁 Uncategorized", "Habits without folders",
+                HabitFolder.FolderType.CUSTOM, "{\"type\":\"uncategorized\"}", 5);
 
         log.info("Created system folders for user: {}", user.getId());
     }
@@ -250,8 +257,8 @@ public class HabitFolderService {
     /**
      * Helper method to create system folders
      */
-    private void createSystemFolder(User user, String name, String description, 
-                                  HabitFolder.FolderType type, String criteria, int sortOrder) {
+    private void createSystemFolder(User user, String name, String description,
+            HabitFolder.FolderType type, String criteria, int sortOrder) {
         HabitFolder folder = HabitFolder.builder()
                 .name(name)
                 .description(description)
@@ -273,14 +280,14 @@ public class HabitFolderService {
      */
     private HabitFolderDTO buildFolderTreeDTO(HabitFolder folder) {
         HabitFolderDTO dto = buildFolderDTOWithCounts(folder);
-        
+
         if (!folder.getChildren().isEmpty()) {
             List<HabitFolderDTO> children = folder.getChildren().stream()
                     .map(this::buildFolderTreeDTO)
                     .collect(Collectors.toList());
             dto.setChildren(children);
         }
-        
+
         return dto;
     }
 
@@ -289,11 +296,138 @@ public class HabitFolderService {
      */
     private HabitFolderDTO buildFolderDTOWithCounts(HabitFolder folder) {
         HabitFolderDTO dto = HabitFolderDTO.fromEntity(folder);
-        
+
         // Add habit count
         long habitCount = folderRepository.countHabitsInFolder(folder.getId());
         dto.setHabitCount((int) habitCount);
-        
+
         return dto;
+    }
+
+    // ========== MISSING METHODS FOR UNIFIED ENTERPRISE OPERATIONS ==========
+
+    /**
+     * Perform unified copy operation on habits
+     */
+    @Transactional
+    public CopyResult performUnifiedCopy(List<Long> habitIds, Long targetFolderId) {
+        long startTime = System.currentTimeMillis();
+        String operationId = UUID.randomUUID().toString();
+
+        log.info("🚀 Starting unified copy operation: {} habits to folder {}", habitIds.size(), targetFolderId);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+
+            // Validate target folder
+            HabitFolder targetFolder = null;
+            if (targetFolderId != null) {
+                targetFolder = folderRepository.findById(targetFolderId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Target folder not found: " + targetFolderId));
+
+                if (!targetFolder.getUser().getId().equals(currentUser.getId())) {
+                    return CopyResult.failure("Access denied to target folder", operationId);
+                }
+            }
+
+            // Get habits to copy
+            List<Habit> habitsToCopy = habitRepository.findAllById(habitIds);
+
+            // Verify ownership
+            for (Habit habit : habitsToCopy) {
+                if (!habit.getUser().getId().equals(currentUser.getId())) {
+                    return CopyResult.failure("Access denied to habit: " + habit.getName(), operationId);
+                }
+            }
+
+            // Perform copy operations
+            List<String> newEntityIds = habitsToCopy.stream()
+                    .map(habit -> {
+                        Habit copy = Habit.builder()
+                                .name(habit.getName() + " (Copy)")
+                                .description(habit.getDescription())
+                                .habitType(habit.getHabitType())
+                                .timerDurationMinutes(habit.getTimerDurationMinutes())
+                                .timerPreset(habit.getTimerPreset())
+                                .priority(habit.getPriority())
+                                .tags(habit.getTags() != null ? Set.copyOf(habit.getTags()) : null)
+                                .category(habit.getCategory())
+                                .user(currentUser)
+                                .folder(targetFolder)
+                                .createdAt(LocalDate.now())
+                                .build();
+
+                        Habit saved = habitRepository.save(copy);
+                        return saved.getId().toString();
+                    })
+                    .collect(Collectors.toList());
+
+            long duration = System.currentTimeMillis() - startTime;
+
+            return CopyResult.success(habitsToCopy.size(), newEntityIds, operationId, duration);
+
+        } catch (Exception e) {
+            log.error("❌ Unified copy operation failed: {}", e.getMessage(), e);
+            return CopyResult.failure("Copy operation failed: " + e.getMessage(), operationId);
+        }
+    }
+
+    /**
+     * Invalidate entity cache for given habit IDs
+     */
+    @CacheEvict(value = { "habits", "folders" }, allEntries = true)
+    public void invalidateEntityCache(List<Long> habitIds) {
+        log.info("🗑️ Invalidating cache for {} entities", habitIds.size());
+        // Cache eviction is handled by the annotation
+    }
+
+    /**
+     * Get habits in a specific folder
+     */
+    @Cacheable(value = "folder-habits", key = "#folderId + '-' + #includeArchived")
+    public List<Habit> getHabitsInFolder(Long folderId, boolean includeArchived) {
+        log.debug("📂 Getting habits in folder: {}, includeArchived: {}", folderId, includeArchived);
+
+        User currentUser = userService.getCurrentUser();
+
+        if (folderId == null) {
+            // Root folder - habits without folder
+            if (includeArchived) {
+                return habitRepository.findByUserAndFolderIsNull(currentUser.getId());
+            } else {
+                return habitRepository.findByUserAndFolderIsNullAndIsArchivedFalse(currentUser.getId());
+            }
+        }
+
+        // Verify folder access
+        HabitFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Folder not found: " + folderId));
+
+        if (!folder.getUser().getId().equals(currentUser.getId()) && !folder.getIsSystemFolder()) {
+            throw new IllegalArgumentException("Access denied to folder: " + folderId);
+        }
+
+        if (includeArchived) {
+            return habitRepository.findByFolderId(folderId);
+        } else {
+            return habitRepository.findByFolderIdAndIsArchivedFalse(folderId);
+        }
+    }
+
+    /**
+     * Get habit by ID with access control
+     */
+    public Habit getHabitById(Long habitId) {
+        log.debug("🎯 Getting habit by ID: {}", habitId);
+
+        Habit habit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found: " + habitId));
+
+        User currentUser = userService.getCurrentUser();
+        if (!habit.getUser().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("Access denied to habit: " + habitId);
+        }
+
+        return habit;
     }
 }
