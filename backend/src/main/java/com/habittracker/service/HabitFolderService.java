@@ -15,8 +15,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -317,10 +319,10 @@ public class HabitFolderService {
         log.info("🚀 Starting unified copy operation: {} habits to folder {}", habitIds.size(), targetFolderId);
 
         try {
-            User currentUser = userService.getCurrentUser();
+            final User currentUser = userService.getCurrentUser();
 
             // Validate target folder
-            HabitFolder targetFolder = null;
+            final HabitFolder targetFolder;
             if (targetFolderId != null) {
                 targetFolder = folderRepository.findById(targetFolderId)
                         .orElseThrow(() -> new ResourceNotFoundException("Target folder not found: " + targetFolderId));
@@ -328,6 +330,8 @@ public class HabitFolderService {
                 if (!targetFolder.getUser().getId().equals(currentUser.getId())) {
                     return CopyResult.failure("Access denied to target folder", operationId);
                 }
+            } else {
+                targetFolder = null;
             }
 
             // Get habits to copy
