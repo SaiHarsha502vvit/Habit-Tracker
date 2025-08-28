@@ -505,7 +505,7 @@ export const importUserData = async (file) => {
  * Unified copy operation for habits (Enterprise File System)
  */
 export const copyHabitsToFolder = async (habitIds, targetFolderId) => {
-  const response = await api.post('/habits/unified-copy', {
+  const response = await api.post('/api/habits/unified-copy', {
     habitIds: habitIds,
     targetFolderId: targetFolderId
   })
