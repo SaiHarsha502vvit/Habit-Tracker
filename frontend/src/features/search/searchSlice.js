@@ -11,7 +11,9 @@ import {
   createHabitFolder,
   updateHabitFolder,
   deleteHabitFolder,
-  searchFolders
+  searchFolders,
+  copyHabitsToFolder,
+  moveHabitsToFolder
 } from '../../services/api'
 
 /**
@@ -152,6 +154,30 @@ export const deleteFolder = createAsyncThunk(
   }
 )
 
+export const copyHabits = createAsyncThunk(
+  'search/copyHabits',
+  async ({ habitIds, targetFolderId }, { rejectWithValue }) => {
+    try {
+      const result = await copyHabitsToFolder(habitIds, targetFolderId)
+      return result
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to copy habits')
+    }
+  }
+)
+
+export const moveHabits = createAsyncThunk(
+  'search/moveHabits',
+  async ({ habitIds, targetFolderId }, { rejectWithValue }) => {
+    try {
+      const result = await moveHabitsToFolder(habitIds, targetFolderId)
+      return result
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to move habits')
+    }
+  }
+)
+
 /**
  * Initial state
  */
@@ -190,6 +216,13 @@ const initialState = {
   folderTree: [],
   allFolders: [],
   selectedFolder: null,
+  
+  // Copy/Move operations
+  copyOperation: {
+    status: 'idle',
+    result: null,
+    error: null
+  },
   
   // UI state
   ui: {
@@ -359,6 +392,34 @@ const searchSlice = createSlice({
         }
       })
 
+      // Copy operations
+      .addCase(copyHabits.pending, (state) => {
+        state.copyOperation.status = 'loading'
+        state.copyOperation.error = null
+      })
+      .addCase(copyHabits.fulfilled, (state, action) => {
+        state.copyOperation.status = 'success'
+        state.copyOperation.result = action.payload
+      })
+      .addCase(copyHabits.rejected, (state, action) => {
+        state.copyOperation.status = 'failed'
+        state.copyOperation.error = action.payload
+      })
+
+      // Move operations
+      .addCase(moveHabits.pending, (state) => {
+        state.copyOperation.status = 'loading'
+        state.copyOperation.error = null
+      })
+      .addCase(moveHabits.fulfilled, (state, action) => {
+        state.copyOperation.status = 'success'
+        state.copyOperation.result = action.payload
+      })
+      .addCase(moveHabits.rejected, (state, action) => {
+        state.copyOperation.status = 'failed'
+        state.copyOperation.error = action.payload
+      })
+
       // Error handling for folder operations
       .addCase(createFolder.rejected, (state, action) => {
         state.error = action.payload
@@ -399,5 +460,6 @@ export const selectSelectedFolder = (state) => state.search.selectedFolder
 export const selectSearchUI = (state) => state.search.ui
 export const selectSearchStatus = (state) => state.search.status
 export const selectSearchError = (state) => state.search.error
+export const selectCopyOperation = (state) => state.search.copyOperation
 
 export default searchSlice.reducer

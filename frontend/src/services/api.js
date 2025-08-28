@@ -497,4 +497,35 @@ export const importUserData = async (file) => {
   return response.data
 }
 
+/**
+ * Copy/Move Operations API functions
+ */
+
+/**
+ * Unified copy operation for habits (Enterprise File System)
+ */
+export const copyHabitsToFolder = async (habitIds, targetFolderId) => {
+  const response = await api.post('/habits/unified-copy', {
+    habitIds: habitIds,
+    targetFolderId: targetFolderId
+  })
+  return response.data
+}
+
+/**
+ * Move habits to a folder (using copy + delete pattern for safety)
+ */
+export const moveHabitsToFolder = async (habitIds, targetFolderId) => {
+  // First copy habits to target folder
+  const copyResult = await copyHabitsToFolder(habitIds, targetFolderId)
+  
+  if (copyResult.success) {
+    // If copy successful, delete original habits
+    const deletePromises = habitIds.map(habitId => deleteHabit(habitId))
+    await Promise.all(deletePromises)
+  }
+  
+  return copyResult
+}
+
 export default api
