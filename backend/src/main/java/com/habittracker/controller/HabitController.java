@@ -4,6 +4,7 @@ import com.habittracker.dto.HabitDto;
 import com.habittracker.dto.HabitLogDto;
 import com.habittracker.model.Habit;
 import com.habittracker.service.HabitService;
+import com.habittracker.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -251,5 +252,53 @@ public class HabitController {
                         "description", "Focus Sprint (45min work, 10min break)"));
 
         return ResponseEntity.ok(presets);
+    }
+
+    /**
+     * Move habit to a folder
+     */
+    @PostMapping("/habits/{habitId}/move")
+    @Operation(summary = "Move habit to folder", description = "Move a habit to a specific folder or to root")
+    @ApiResponse(responseCode = "200", description = "Habit moved successfully")
+    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    public ResponseEntity<HabitDto> moveHabitToFolder(
+            @PathVariable Long habitId,
+            @RequestParam(required = false) Long folderId) {
+        
+        log.info("POST /api/habits/{}/move - Moving to folder: {}", habitId, folderId);
+        
+        try {
+            HabitDto movedHabit = habitService.moveHabitToFolder(habitId, folderId);
+            return ResponseEntity.ok(movedHabit);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Copy habit to a folder
+     */
+    @PostMapping("/habits/{habitId}/copy")
+    @Operation(summary = "Copy habit to folder", description = "Create a copy of a habit in a specific folder or root")
+    @ApiResponse(responseCode = "201", description = "Habit copied successfully")
+    @ApiResponse(responseCode = "404", description = "Habit not found")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    public ResponseEntity<HabitDto> copyHabitToFolder(
+            @PathVariable Long habitId,
+            @RequestParam(required = false) Long folderId) {
+        
+        log.info("POST /api/habits/{}/copy - Copying to folder: {}", habitId, folderId);
+        
+        try {
+            HabitDto copiedHabit = habitService.copyHabitToFolder(habitId, folderId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(copiedHabit);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

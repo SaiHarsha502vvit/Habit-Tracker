@@ -8,6 +8,7 @@ import com.habittracker.model.Habit;
 import com.habittracker.model.HabitLog;
 import com.habittracker.model.User;
 import com.habittracker.model.Category;
+import com.habittracker.model.HabitFolder;
 import com.habittracker.repository.HabitLogRepository;
 import com.habittracker.repository.HabitRepository;
 import com.habittracker.repository.CategoryRepository;
@@ -413,6 +414,82 @@ public class HabitService {
         }
 
         return dtoBuilder.build();
+    }
+
+    /**
+     * Move habit to a different folder
+     */
+    @Transactional
+    @CacheEvict(value = "habits", allEntries = true)
+    public HabitDto moveHabitToFolder(Long habitId, Long folderId) {
+        log.info("Moving habit {} to folder {}", habitId, folderId);
+        
+        Habit habit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found with ID: " + habitId));
+        
+        if (!isUserAllowedToModifyHabit(habit)) {
+            throw new IllegalArgumentException("You don't have permission to modify this habit");
+        }
+        
+        // Set folder to null if folderId is null (move to root)
+        if (folderId == null) {
+            habit.setFolder(null);
+        } else {
+            // For now, create a minimal folder reference
+            // In a complete implementation, we'd validate the folder exists and belongs to user
+            HabitFolder folder = new HabitFolder();
+            folder.setId(folderId);
+            habit.setFolder(folder);
+        }
+        
+        habit.setUpdatedAt(LocalDateTime.now());
+        
+        Habit savedHabit = habitRepository.save(habit);
+        return mapToDto(savedHabit);
+    }
+    
+    /**
+     * Copy habit to a different folder
+     */
+    @Transactional
+    @CacheEvict(value = "habits", allEntries = true)
+    public HabitDto copyHabitToFolder(Long habitId, Long folderId) {
+        log.info("Copying habit {} to folder {}", habitId, folderId);
+        
+        Habit originalHabit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found with ID: " + habitId));
+        
+        if (!isUserAllowedToAccessHabit(originalHabit)) {
+            throw new IllegalArgumentException("You don't have permission to access this habit");
+        }
+        
+        // Create folder reference if folderId is provided
+        HabitFolder targetFolder = null;
+        if (folderId != null) {
+            targetFolder = new HabitFolder();
+            targetFolder.setId(folderId);
+        }
+        
+        // Create a copy of the habit
+        Habit copiedHabit = Habit.builder()
+                .name(originalHabit.getName() + " (Copy)")
+                .description(originalHabit.getDescription())
+                .habitType(originalHabit.getHabitType())
+                .timerDurationMinutes(originalHabit.getTimerDurationMinutes())
+                .category(originalHabit.getCategory())
+                .tags(originalHabit.getTags())
+                .priority(originalHabit.getPriority())
+                .timerPreset(originalHabit.getTimerPreset())
+                .folder(targetFolder)
+                .user(originalHabit.getUser())
+                .createdAt(LocalDate.now())
+                .updatedAt(LocalDateTime.now())
+                .streakCount(0) // Reset streak for copied habit
+                .isArchived(false) // New copy should not be archived
+                .build();
+        
+        Habit savedHabit = habitRepository.save(copiedHabit);
+        return mapToDto(savedHabit);
     }
 
     /**

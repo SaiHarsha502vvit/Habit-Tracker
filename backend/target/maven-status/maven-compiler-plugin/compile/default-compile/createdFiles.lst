@@ -17,6 +17,7 @@ com/habittracker/model/Habit.class
 com/habittracker/repository/HabitRepository.class
 com/habittracker/dto/CategoryDto.class
 com/habittracker/model/PomodoroSession.class
+com/habittracker/service/NotificationService$PushNotificationRequest.class
 com/habittracker/dto/HabitFolderDTO$HabitFolderDTOBuilder.class
 com/habittracker/controller/DataExportImportController.class
 com/habittracker/service/HabitFolderService.class
@@ -76,6 +77,7 @@ com/habittracker/repository/PomodoroSessionRepository.class
 com/habittracker/model/HabitFolder.class
 com/habittracker/repository/PomodoroSessionSetRepository.class
 com/habittracker/dto/SessionStatsDTO$SessionStatsDTOBuilder.class
+com/habittracker/service/NotificationService$PushNotificationRequest$PushNotificationRequestBuilder.class
 com/habittracker/service/NotificationService$NotificationPayload$NotificationPayloadBuilder.class
 com/habittracker/model/Habit$HabitBuilder.class
 com/habittracker/controller/CategoryController.class
