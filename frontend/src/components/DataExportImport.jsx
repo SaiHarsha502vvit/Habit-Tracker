@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { exportUserData, importUserData } from '../services/api'
+import { exportUserData, importUserData, getHabits } from '../services/api'
 import toast from 'react-hot-toast'
 import {
   usePerformanceMonitor,
@@ -151,11 +151,27 @@ export default function DataExportImport() {
     try {
       setIsExporting(true)
 
-      // For now, this is a placeholder CSV export
-      const response = await fetch('/api/export/csv')
-      const data = await response.text()
+      // Improved CSV export with actual data generation
+      const habits = await getHabits() // Fetch current habits
+      
+      // Create CSV content
+      const csvHeader = 'Name,Description,Type,Priority,Category,Created Date,Streak Count,Status\n'
+      const csvRows = habits.map(habit => {
+        return [
+          `"${habit.name || ''}"`,
+          `"${habit.description || ''}"`,
+          habit.habitType || 'STANDARD',
+          habit.priority || 'MEDIUM',
+          habit.category?.name || '',
+          habit.createdAt || '',
+          habit.streakCount || 0,
+          habit.isArchived ? 'Archived' : 'Active'
+        ].join(',')
+      }).join('\n')
+      
+      const csvContent = csvHeader + csvRows
 
-      const blob = new Blob([data], { type: 'text/csv' })
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url

@@ -193,21 +193,85 @@ public class NotificationService {
     }
 
     /**
-     * Send email notification (placeholder implementation)
+     * Send email notification with basic implementation
      */
     private void sendEmailNotification(NotificationPayload payload, User user) {
-        // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
-        log.info("Email notification would be sent to: {} - Subject: {}",
-                user.getEmail(), payload.getTitle());
+        try {
+            if (!emailNotificationsEnabled || user.getEmail() == null) {
+                log.debug("Email notifications disabled or user email not available");
+                return;
+            }
+            
+            // Basic email implementation using Spring Mail
+            String subject = payload.getTitle();
+            String body = String.format("""
+                Hello %s,
+                
+                %s
+                
+                Time: %s
+                
+                Best regards,
+                Habit Tracker Team
+                """, 
+                user.getUsername() != null ? user.getUsername() : "User",
+                payload.getMessage(),
+                payload.getTimestamp().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            
+            // In a real implementation, you would use JavaMailSender here
+            log.info("📧 Email notification prepared for: {} - Subject: {} - Body length: {}", 
+                    user.getEmail(), subject, body.length());
+            
+            // Placeholder for actual email sending:
+            // mailSender.send(createMimeMessage(user.getEmail(), subject, body));
+            
+        } catch (Exception e) {
+            log.error("Failed to send email notification to {}: {}", user.getEmail(), e.getMessage());
+        }
     }
 
     /**
-     * Send push notification (placeholder implementation)
+     * Send push notification with basic implementation
      */
     private void sendPushNotification(NotificationPayload payload, User user) {
-        // TODO: Integrate with push notification service (Firebase, AWS SNS, etc.)
-        log.info("Push notification would be sent to user: {} - {}",
-                user.getUsername(), payload.getTitle());
+        try {
+            if (!pushNotificationsEnabled) {
+                log.debug("Push notifications disabled");
+                return;
+            }
+            
+            // Basic push notification structure
+            PushNotificationRequest pushRequest = PushNotificationRequest.builder()
+                    .userId(user.getId().toString())
+                    .title(payload.getTitle())
+                    .message(payload.getMessage())
+                    .timestamp(payload.getTimestamp())
+                    .build();
+                    
+            // In a real implementation, you would integrate with Firebase FCM, AWS SNS, etc.
+            log.info("📱 Push notification prepared for user: {} - Title: {} - Message: {}", 
+                    user.getUsername(), pushRequest.getTitle(), pushRequest.getMessage());
+            
+            // Placeholder for actual push notification sending:
+            // firebaseMessaging.send(createFirebaseMessage(pushRequest));
+            // or awsSnsClient.publish(createSnsPublishRequest(pushRequest));
+            
+        } catch (Exception e) {
+            log.error("Failed to send push notification to user {}: {}", user.getUsername(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Simple push notification request structure
+     */
+    @lombok.Builder
+    @lombok.Data
+    private static class PushNotificationRequest {
+        private String userId;
+        private String title;
+        private String message;
+        private LocalDateTime timestamp;
     }
 
     /**

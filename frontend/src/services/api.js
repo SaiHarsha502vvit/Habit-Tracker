@@ -473,6 +473,42 @@ export const getSearchSuggestions = async (partialInput) => {
  */
 
 /**
+ * Move habit to folder
+ */
+export const moveHabitToFolder = async (habitId, folderId) => {
+  const params = new URLSearchParams()
+  if (folderId) params.append('folderId', folderId)
+  
+  const response = await api.post(`/api/habits/${habitId}/move?${params.toString()}`)
+  return response.data
+}
+
+/**
+ * Copy habit to folder
+ */
+export const copyHabitToFolder = async (habitId, folderId) => {
+  const params = new URLSearchParams()
+  if (folderId) params.append('folderId', folderId)
+  
+  const response = await api.post(`/api/habits/${habitId}/copy?${params.toString()}`)
+  return response.data
+}
+
+/**
+ * Move entities to folder (batch operation)
+ */
+export const moveEntitiesToFolderAsync = async (entityIds, folderId) => {
+  // For multiple habits, call moveHabitToFolder for each
+  const promises = entityIds.map(habitId => moveHabitToFolder(habitId, folderId))
+  const results = await Promise.all(promises)
+  return results
+}
+
+/**
+ * Data Export/Import API functions
+ */
+
+/**
  * Export all user data
  */
 export const exportUserData = async () => {
